@@ -29,23 +29,16 @@
       <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
     </ul>
   </div>
-  <div>
-    <TheChessboard />
-  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { TheChessboard } from 'vue3-chessboard';
-import 'vue3-chessboard/style.css';
+
 
 export default defineComponent({
   name: 'HelloWorld',
   props: {
     msg: String,
-  },
-  components: {
-    TheChessboard,
   },
 });
 </script>

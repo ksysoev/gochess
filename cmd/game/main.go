@@ -163,6 +163,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(5 * time.Second))
+	r.Use(SetAccessControlHeader)
 
 	r.Post("/game", startGame)
 	r.Get("/game/{gameID}", getGame)
@@ -170,8 +171,15 @@ func main() {
 	r.Post("/game/{gameID}/move", move)
 
 	// Serve the routes using the ServeMux
-	log.Println("Starting Game Server on port 8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	log.Println("Starting Game Server on port 8081")
+	if err := http.ListenAndServe(":8081", r); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func SetAccessControlHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		next.ServeHTTP(w, r)
+	})
 }
