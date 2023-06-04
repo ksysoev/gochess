@@ -1,57 +1,56 @@
 <template>
   <div>
-    <TheChessboard @move="onMove" :board-config="boardConfig" />
+    <div v-if="!showGameView">
+      <label for="username">
+        <input
+          placeholder="Enter your username"
+          type="text"
+          id="username"
+          v-model="username"/>
+      </label>
+      <button @click="findMatch">Find a match</button>
+    </div>
+    <GameView v-if="showGameView" :white="white" :black="black" />
   </div>
 </template>
 
-<script setup lang="ts">
-import { defineComponent } from 'vue';
-import { TheChessboard, type MoveEvent, type BoardConfig } from 'vue3-chessboard';
-import 'vue3-chessboard/style.css';
-
-let gameId: string | null = null;
-const boardConfig: BoardConfig = {};
-
-function onMove(move: MoveEvent) {
-  console.log(move);
-  if (gameId) {
-    fetch(`http://localhost:8081/game/${gameId}/move`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ move: move.san }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
-}
-
-fetch('http://localhost:8081/game', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    gameId = data.id;
-  })
-  .catch((error) => {
-    console.error(error);
-  });
-</script>
-
 <script lang="ts">
+import { defineComponent } from 'vue';
+import GameView from './components/GameView.vue';
+
 export default defineComponent({
   name: 'App',
   components: {
-    TheChessboard,
+    GameView,
+  },
+  data() {
+    return {
+      username: '',
+      white: '',
+      black: '',
+      showGameView: false,
+    };
+  },
+  methods: {
+    async findMatch() {
+      try {
+        const response = await fetch('http://localhost:8081/match', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username: this.username }),
+        });
+        const data = await response.json();
+
+        console.log(data);
+        this.white = data.white;
+        this.black = data.black;
+        this.showGameView = true;
+      } catch (error) {
+        console.error(error);
+      }
+    },
   },
 });
 </script>

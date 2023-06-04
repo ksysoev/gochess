@@ -189,6 +189,7 @@ func findMatch(w http.ResponseWriter, r *http.Request) {
 		queue = queue[1:]
 		black := req.Name
 		id := uuid.New().String()
+		newGame := chess.NewGame()
 		GameRepo.Postitions[id] = newGame.Position().String()
 
 		resp = MatchResponse{
@@ -226,6 +227,8 @@ func main() {
 	r.Get("/game/{gameID}", getGame)
 	r.Delete("/game/{gameID}", finishGame)
 	r.Post("/game/{gameID}/move", move)
+
+	r.Post("/match", findMatch)
 
 	// Serve the routes using the ServeMux
 	log.Println("Starting Game Server on port 8081")

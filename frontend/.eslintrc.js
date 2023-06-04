@@ -16,8 +16,8 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
   },
   settings: {
-    "import/resolver": {
-      typescript: {} 
+    'import/resolver': {
+      typescript: {},
     },
   },
 };
