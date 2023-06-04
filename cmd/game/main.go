@@ -2,24 +2,22 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
 	"github.com/notnil/chess"
 )
 
 type GameRepoStorage struct {
-	CurrentGameID int
-	Postitions    map[string]string
+	Postitions map[string]string
 }
 
 var GameRepo GameRepoStorage = GameRepoStorage{
-	CurrentGameID: 0,
-	Postitions:    make(map[string]string),
+	Postitions: make(map[string]string),
 }
 
 type MoveRequest struct {
@@ -39,8 +37,7 @@ func startGame(w http.ResponseWriter, r *http.Request) {
 	// Start a new game
 	newGame := chess.NewGame()
 
-	GameRepo.CurrentGameID += 1
-	id := fmt.Sprintf("%d", GameRepo.CurrentGameID)
+	id := uuid.New().String()
 	GameRepo.Postitions[id] = newGame.Position().String()
 
 	resp := StartGameResponse{
@@ -138,13 +135,15 @@ func move(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	GameRepo.Postitions[gameID] = game.Position().String()
+
 	resp := MoveResponse{
 		Position: game.Position().String(),
 	}
 
 	res, err := json.Marshal(resp)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Illigal move", http.StatusBadRequest)
 		return
 	}
 

@@ -3,106 +3,205 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/notnil/chess"
 )
 
 func TestStartGame(t *testing.T) {
-	// Create a new request to the /start endpoint
-	req, err := http.NewRequest("GET", "/start", nil)
+	// Create a new HTTP request to the /game route
+	req, err := http.NewRequest("POST", "/game", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Create a new response recorder
+	// Create a new HTTP response recorder
 	rr := httptest.NewRecorder()
 
-	// Call the startGame handler function
-	handler := http.HandlerFunc(startGame)
-	handler.ServeHTTP(rr, req)
+	// Create a new chi router and register the /game route
+	r := chi.NewRouter()
+	r.Post("/game", startGame)
 
-	// Check that the response status code is 200 OK
-	assert.Equal(t, http.StatusOK, rr.Code)
+	// Send the HTTP request to the chi router
+	r.ServeHTTP(rr, req)
 
-	// Check that the current game is not nil and has started
-	assert.NotNil(t, currentGame)
-	assert.True(t, currentGame.Started)
+	// Check the status code of the HTTP response
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// Check the content type of the HTTP response
+	if ctype := rr.Header().Get("Content-Type"); ctype != "application/json" {
+		t.Errorf("handler returned wrong content type: got %v want %v",
+			ctype, "application/json")
+	}
+
+	// Check the body of the HTTP response
+	var resp StartGameResponse
+	err = json.Unmarshal(rr.Body.Bytes(), &resp)
+	if err != nil {
+		t.Errorf("handler returned invalid JSON: %v", err)
+	}
+
+	if resp.ID == "" {
+		t.Errorf("handler returned empty ID")
+	}
+
+	if resp.Position == "" {
+		t.Errorf("handler returned empty position")
+	}
+
+	// Check that the game position was saved to the repository
+	if pos, ok := GameRepo.Postitions[resp.ID]; !ok || pos != resp.Position {
+		t.Errorf("handler did not save game position to repository")
+	}
+}
+
+func TestGetGame(t *testing.T) {
+	// Create a new game and save its position to the repository
+	newGame := chess.NewGame()
+	id := uuid.New().String()
+	GameRepo.Postitions[id] = newGame.Position().String()
+
+	// Create a new HTTP request to the /game/{gameID} route
+	req, err := http.NewRequest("GET", fmt.Sprintf("/game/%s", id), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a new HTTP response recorder
+	rr := httptest.NewRecorder()
+
+	// Create a new chi router and register the /game/{gameID} route
+	r := chi.NewRouter()
+	r.Get("/game/{gameID}", getGame)
+
+	// Send the HTTP request to the chi router
+	r.ServeHTTP(rr, req)
+
+	// Check the status code of the HTTP response
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	// Check the content type of the HTTP response
+	if ctype := rr.Header().Get("Content-Type"); ctype != "application/json" {
+		t.Errorf("handler returned wrong content type: got %v want %v",
+			ctype, "application/json")
+	}
+
+	// Check the body of the HTTP response
+	var resp MoveResponse
+	err = json.Unmarshal(rr.Body.Bytes(), &resp)
+	if err != nil {
+		t.Errorf("handler returned invalid JSON: %v", err)
+	}
+
+	if resp.Position == "" {
+		t.Errorf("handler returned empty position")
+	}
+
+	// Check that the game position in the response matches the one in the repository
+	if resp.Position != GameRepo.Postitions[id] {
+		t.Errorf("handler returned incorrect game position")
+	}
 }
 
 func TestFinishGame(t *testing.T) {
-	// Create a new request to the /finish endpoint
-	req, err := http.NewRequest("GET", "/finish", nil)
+	// Create a new game and save its position to the repository
+	newGame := chess.NewGame()
+	id := uuid.New().String()
+	GameRepo.Postitions[id] = newGame.Position().String()
+
+	// Create a new HTTP request to the /game/{gameID} route
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("/game/%s", id), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Create a new response recorder
+	// Create a new HTTP response recorder
 	rr := httptest.NewRecorder()
 
-	// Call the finishGame handler function
-	handler := http.HandlerFunc(finishGame)
-	handler.ServeHTTP(rr, req)
+	// Create a new chi router and register the /game/{gameID} route
+	r := chi.NewRouter()
+	r.Delete("/game/{gameID}", finishGame)
 
-	// Check that the response status code is 400 Bad Request
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	// Send the HTTP request to the chi router
+	r.ServeHTTP(rr, req)
 
-	// Start a new game
-	currentGame = &Game{
-		Board:    chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation)).Position().Board(),
-		Players:  [2]string{"Player 1", "Player 2"},
-		Turn:     chess.White,
-		Started:  true,
-		Finished: false,
+	// Check the status code of the HTTP response
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
 	}
 
-	// Call the finishGame handler function again
-	handler.ServeHTTP(rr, req)
-
-	// Check that the response status code is 200 OK
-	assert.Equal(t, http.StatusOK, rr.Code)
-
-	// Check that the current game has finished
-	assert.True(t, currentGame.Finished)
+	// Check that the game position was deleted from the repository
+	if _, ok := GameRepo.Postitions[id]; ok {
+		t.Errorf("handler did not delete game position from repository")
+	}
 }
 
 func TestMove(t *testing.T) {
-	// Create a new request to the /move endpoint
+	// Create a new game and save its position to the repository
+	newGame := chess.NewGame()
+	id := uuid.New().String()
+	GameRepo.Postitions[id] = newGame.Position().String()
+
+	// Create a new HTTP request to the /game/{gameID}/move route
 	moveReq := MoveRequest{
-		From: "e2",
-		To:   "e4",
+		Move: "e4",
 	}
-	moveReqBytes, _ := json.Marshal(moveReq)
-	req, err := http.NewRequest("POST", "/move", bytes.NewBuffer(moveReqBytes))
+	moveReqBytes, err := json.Marshal(moveReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, err := http.NewRequest("POST", fmt.Sprintf("/game/%s/move", id), bytes.NewBuffer(moveReqBytes))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Create a new response recorder
+	// Create a new HTTP response recorder
 	rr := httptest.NewRecorder()
 
-	// Start a new game
-	currentGame = &Game{
-		Board:    chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation)).Position().Board(),
-		Players:  [2]string{"Player 1", "Player 2"},
-		Turn:     chess.White,
-		Started:  true,
-		Finished: false,
+	// Create a new chi router and register the /game/{gameID}/move route
+	r := chi.NewRouter()
+	r.Post("/game/{gameID}/move", move)
+
+	// Send the HTTP request to the chi router
+	r.ServeHTTP(rr, req)
+
+	// Check the status code of the HTTP response
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
 	}
 
-	// Call the move handler function
-	handler := http.HandlerFunc(move)
-	handler.ServeHTTP(rr, req)
+	// Check the content type of the HTTP response
+	if ctype := rr.Header().Get("Content-Type"); ctype != "application/json" {
+		t.Errorf("handler returned wrong content type: got %v want %v",
+			ctype, "application/json")
+	}
 
-	// Check that the response status code is 200 OK
-	assert.Equal(t, http.StatusOK, rr.Code)
+	// Check the body of the HTTP response
+	var resp MoveResponse
+	err = json.Unmarshal(rr.Body.Bytes(), &resp)
+	if err != nil {
+		t.Errorf("handler returned invalid JSON: %v", err)
+	}
 
-	// Check that the current game state has been updated
-	var gameState GameState
-	json.NewDecoder(rr.Body).Decode(&gameState)
-	assert.NotNil(t, gameState.Board)
-	assert.Equal(t, "e4", gameState.Board.Squares()[12].Name())
-	assert.Equal(t, "w", gameState.Turn)
+	if resp.Position == "" {
+		t.Errorf("handler returned empty position")
+	}
+
+	// Check that the game position in the response matches the one in the repository
+	if resp.Position != GameRepo.Postitions[id] {
+		t.Errorf("handler returned incorrect game position")
+	}
 }
