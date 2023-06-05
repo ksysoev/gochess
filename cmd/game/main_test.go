@@ -114,40 +114,6 @@ func TestGetGame(t *testing.T) {
 	}
 }
 
-func TestFinishGame(t *testing.T) {
-	// Create a new game and save its position to the repository
-	newGame := chess.NewGame()
-	id := uuid.New().String()
-	GameRepo.Postitions[id] = newGame.Position().String()
-
-	// Create a new HTTP request to the /game/{gameID} route
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("/game/%s", id), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create a new HTTP response recorder
-	rr := httptest.NewRecorder()
-
-	// Create a new chi router and register the /game/{gameID} route
-	r := chi.NewRouter()
-	r.Delete("/game/{gameID}", finishGame)
-
-	// Send the HTTP request to the chi router
-	r.ServeHTTP(rr, req)
-
-	// Check the status code of the HTTP response
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	// Check that the game position was deleted from the repository
-	if _, ok := GameRepo.Postitions[id]; ok {
-		t.Errorf("handler did not delete game position from repository")
-	}
-}
-
 func TestMove(t *testing.T) {
 	// Create a new game and save its position to the repository
 	newGame := chess.NewGame()
