@@ -7,13 +7,13 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type AppGameServer struct {
+type ApiGameServer struct {
 	GameService GameService
 	Router      chi.Router
 }
 
-func NewApiGameServer() AppGameServer {
-	app := AppGameServer{
+func NewApiGameServer() ApiGameServer {
+	app := ApiGameServer{
 		GameService: GameService{
 			GameRepo: NewGameRepo(),
 		},
@@ -42,7 +42,7 @@ type StartGameResponse struct {
 	Position string `json:"position"`
 }
 
-func (app *AppGameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
+func (app *ApiGameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
 	// Start a new game
 
 	game, err := app.GameService.CreateGame("player1", "player2")
@@ -68,7 +68,7 @@ func (app *AppGameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (app *AppGameServer) GetGame(w http.ResponseWriter, r *http.Request) {
+func (app *ApiGameServer) GetGame(w http.ResponseWriter, r *http.Request) {
 
 	gameID := chi.URLParam(r, "gameID")
 	if gameID == "" {
@@ -99,7 +99,7 @@ func (app *AppGameServer) GetGame(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (app *AppGameServer) MakeMove(w http.ResponseWriter, r *http.Request) {
+func (app *ApiGameServer) MakeMove(w http.ResponseWriter, r *http.Request) {
 
 	gameID := chi.URLParam(r, "gameID")
 
@@ -115,6 +115,11 @@ func (app *AppGameServer) MakeMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	game, err := app.GameService.MakeMove(gameID, req.Move)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	resp := MoveResponse{
 		Position: game.Position,
