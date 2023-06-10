@@ -5,11 +5,13 @@ import (
 	"github.com/ksysoev/gochess/events"
 )
 
+// GameService is a service for managing games.
 type GameService struct {
 	GameRepo GameRepo
 	EventBus EventBus.Bus
 }
 
+// NewGameService creates a new GameService.
 func NewGameService(gameRepo GameRepo, evbus EventBus.Bus) GameService {
 	return GameService{
 		GameRepo: gameRepo,
@@ -17,6 +19,7 @@ func NewGameService(gameRepo GameRepo, evbus EventBus.Bus) GameService {
 	}
 }
 
+// CreateGame creates a new game.
 func (gs GameService) CreateGame(playerWhite string, playerBlack string) (Game, error) {
 	game := NewGame(playerWhite, playerBlack)
 
@@ -35,6 +38,7 @@ func (gs GameService) CreateGame(playerWhite string, playerBlack string) (Game, 
 	return game, nil
 }
 
+// GetGame gets a game.
 func (gs GameService) GetGame(id string) (Game, error) {
 	game, err := gs.GameRepo.Get(id)
 	if err != nil {
@@ -44,6 +48,7 @@ func (gs GameService) GetGame(id string) (Game, error) {
 	return game, nil
 }
 
+// MakeMove makes a move in a game.
 func (gs GameService) MakeMove(id string, move string) (Game, error) {
 	game, err := gs.GameRepo.Get(id)
 	if err != nil {

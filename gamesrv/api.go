@@ -8,11 +8,13 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// ApiGameServer is a HTTP server that exposes the game service
 type ApiGameServer struct {
 	GameService GameService
 	Router      chi.Router
 }
 
+// NewApiGameServer creates a new HTTP server that exposes the game service
 func NewApiGameServer(evbus EventBus.Bus) ApiGameServer {
 	app := ApiGameServer{
 		GameService: NewGameService(NewGameRepo(), evbus),
@@ -41,6 +43,7 @@ type StartGameResponse struct {
 	Position string `json:"position"`
 }
 
+// CreateGame creates a new game
 func (app *ApiGameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
 	// Start a new game
 
@@ -67,6 +70,7 @@ func (app *ApiGameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
+// GetGame returns the current position of the game
 func (app *ApiGameServer) GetGame(w http.ResponseWriter, r *http.Request) {
 
 	gameID := chi.URLParam(r, "gameID")
@@ -98,6 +102,7 @@ func (app *ApiGameServer) GetGame(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
+// MakeMove makes a move in the game
 func (app *ApiGameServer) MakeMove(w http.ResponseWriter, r *http.Request) {
 
 	gameID := chi.URLParam(r, "gameID")

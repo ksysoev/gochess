@@ -1,28 +1,28 @@
 package notifier
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/asaskevich/EventBus"
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
-	"github.com/ksysoev/gochess/events"
 )
 
+// Event is a struct that represents a single event
 type Event struct {
 	ID   string
 	Data string
 	Name string
 }
 
+// ApiNotifierServer is a struct that represents a notifier server
 type ApiNotifierServer struct {
 	Router   chi.Router
 	Notifier NotifierService
 }
 
+// NewApiNotifierServer is a function that creates a new notifier server
 func NewApiNotifierServer(evbus EventBus.Bus) ApiNotifierServer {
 	app := ApiNotifierServer{
 		Notifier: NewNotifierService(evbus),
@@ -36,6 +36,7 @@ func NewApiNotifierServer(evbus EventBus.Bus) ApiNotifierServer {
 	return app
 }
 
+// SubscribeEvents is a function that subscribes to events
 func (app *ApiNotifierServer) SubscribeEvents(w http.ResponseWriter, r *http.Request) {
 	flusher, err := w.(http.Flusher)
 	if !err {
@@ -43,58 +44,12 @@ func (app *ApiNotifierServer) SubscribeEvents(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	eventChan := make(chan Event)
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	// Subscribe to all events on the bus and send them to the channel
-	app.Notifier.EventBus.Subscribe("game:move", func(event interface{}) {
-		eventObj, ok := event.(events.EventGameMove)
-
-		if !ok {
-			http.Error(w, "Invalid event type", http.StatusInternalServerError)
-			return
-		}
-
-		data, err := json.Marshal(eventObj)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		eventChan <- Event{
-			ID:   uuid.New().String(),
-			Data: string(data),
-			Name: "game:move",
-		}
-	})
-
-	app.Notifier.EventBus.Subscribe("game:start", func(event interface{}) {
-		eventObj, ok := event.(events.EventGameStart)
-
-		if !ok {
-			http.Error(w, "Invalid event type", http.StatusInternalServerError)
-			return
-		}
-
-		data, err := json.Marshal(eventObj)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		fmt.Println("event: ", string(data))
-
-		eventChan <- Event{
-			ID:   uuid.New().String(),
-			Data: string(data),
-			Name: "game:start",
-		}
-	})
+	eventChan := app.Notifier.Subscribe([]string{"game:move", "game:start"})
 
 	flusher.Flush()
 	// Continuously read events from the channel and send them to the SSE stream

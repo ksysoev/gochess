@@ -5,6 +5,7 @@ import (
 	"github.com/notnil/chess"
 )
 
+// Game represents a chess game.
 type Game struct {
 	ID          string
 	Position    string
@@ -13,6 +14,7 @@ type Game struct {
 	State       string
 }
 
+// NewGame creates a new game.
 func NewGame(playerWhite string, playerBlack string) Game {
 	id := uuid.New().String()
 
@@ -28,6 +30,7 @@ func NewGame(playerWhite string, playerBlack string) Game {
 	}
 }
 
+// MakeMove makes a move in the game.
 func (g *Game) MakeMove(move string) error {
 	fen, err := chess.FEN(g.Position)
 	if err != nil {
