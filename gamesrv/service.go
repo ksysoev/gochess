@@ -1,12 +1,31 @@
 package gamesrv
 
-type GameService struct {
-	GameRepo GameRepo
+import "github.com/asaskevich/EventBus"
+
+type EventGameMove struct {
+	GameID      string
+	Move        string
+	Position    string
+	PlayerWhite string
+	PlayerBlack string
 }
 
-func NewGameService(gameRepo GameRepo) GameService {
+type EventGameStart struct {
+	GameID      string
+	PlayerBlack string
+	PlayerWhite string
+	Position    string
+}
+
+type GameService struct {
+	GameRepo GameRepo
+	EventBus EventBus.Bus
+}
+
+func NewGameService(gameRepo GameRepo, evbus EventBus.Bus) GameService {
 	return GameService{
 		GameRepo: gameRepo,
+		EventBus: evbus,
 	}
 }
 
@@ -17,6 +36,13 @@ func (gs GameService) CreateGame(playerWhite string, playerBlack string) (Game, 
 	if err != nil {
 		return Game{}, err
 	}
+
+	gs.EventBus.Publish("game:start", EventGameStart{
+		GameID:      game.ID,
+		PlayerWhite: game.PlayerWhite,
+		PlayerBlack: game.PlayerBlack,
+		Position:    game.Position,
+	})
 
 	return game, nil
 }
@@ -46,5 +72,12 @@ func (gs GameService) MakeMove(id string, move string) (Game, error) {
 		return Game{}, err
 	}
 
+	gs.EventBus.Publish("game:move", EventGameMove{
+		GameID:      game.ID,
+		Move:        move,
+		Position:    game.Position,
+		PlayerWhite: game.PlayerWhite,
+		PlayerBlack: game.PlayerBlack,
+	})
 	return game, nil
 }

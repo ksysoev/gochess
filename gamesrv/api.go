@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/asaskevich/EventBus"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -12,11 +13,9 @@ type ApiGameServer struct {
 	Router      chi.Router
 }
 
-func NewApiGameServer() ApiGameServer {
+func NewApiGameServer(evbus EventBus.Bus) ApiGameServer {
 	app := ApiGameServer{
-		GameService: GameService{
-			GameRepo: NewGameRepo(),
-		},
+		GameService: NewGameService(NewGameRepo(), evbus),
 	}
 
 	r := chi.NewRouter()

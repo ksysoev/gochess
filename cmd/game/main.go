@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/asaskevich/EventBus"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 	"github.com/notnil/chess"
 
 	"github.com/ksysoev/gochess/gamesrv"
+	"github.com/ksysoev/gochess/notifier"
 )
 
 type GameRepoStorage struct {
@@ -96,9 +98,12 @@ func main() {
 
 	r.Post("/match", findMatch)
 
-	gamesrv := gamesrv.NewApiGameServer()
+	bus := EventBus.New()
+	gamesrv := gamesrv.NewApiGameServer(bus)
 	r.Mount("/game", gamesrv.Router)
 
+	srv := notifier.NewApiNotifierServer(bus)
+	r.Mount("/notifier", srv.Router)
 	// Serve the routes using the ServeMux
 	log.Println("Starting Game Server on port 8081")
 	if err := http.ListenAndServe(":8081", r); err != nil {
