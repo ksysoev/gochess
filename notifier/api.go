@@ -9,7 +9,7 @@ import (
 	"github.com/asaskevich/EventBus"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
-	"github.com/ksysoev/gochess/gamesrv"
+	"github.com/ksysoev/gochess/events"
 )
 
 type Event struct {
@@ -51,7 +51,7 @@ func (app *ApiNotifierServer) SubscribeEvents(w http.ResponseWriter, r *http.Req
 
 	// Subscribe to all events on the bus and send them to the channel
 	app.Notifier.EventBus.Subscribe("game:move", func(event interface{}) {
-		eventObj, ok := event.(gamesrv.EventGameMove)
+		eventObj, ok := event.(events.EventGameMove)
 
 		if !ok {
 			http.Error(w, "Invalid event type", http.StatusInternalServerError)
@@ -73,7 +73,7 @@ func (app *ApiNotifierServer) SubscribeEvents(w http.ResponseWriter, r *http.Req
 	})
 
 	app.Notifier.EventBus.Subscribe("game:start", func(event interface{}) {
-		eventObj, ok := event.(gamesrv.EventGameStart)
+		eventObj, ok := event.(events.EventGameStart)
 
 		if !ok {
 			http.Error(w, "Invalid event type", http.StatusInternalServerError)

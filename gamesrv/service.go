@@ -1,21 +1,9 @@
 package gamesrv
 
-import "github.com/asaskevich/EventBus"
-
-type EventGameMove struct {
-	GameID      string
-	Move        string
-	Position    string
-	PlayerWhite string
-	PlayerBlack string
-}
-
-type EventGameStart struct {
-	GameID      string
-	PlayerBlack string
-	PlayerWhite string
-	Position    string
-}
+import (
+	"github.com/asaskevich/EventBus"
+	"github.com/ksysoev/gochess/events"
+)
 
 type GameService struct {
 	GameRepo GameRepo
@@ -37,7 +25,7 @@ func (gs GameService) CreateGame(playerWhite string, playerBlack string) (Game, 
 		return Game{}, err
 	}
 
-	gs.EventBus.Publish("game:start", EventGameStart{
+	gs.EventBus.Publish("game:start", events.EventGameStart{
 		GameID:      game.ID,
 		PlayerWhite: game.PlayerWhite,
 		PlayerBlack: game.PlayerBlack,
@@ -72,7 +60,7 @@ func (gs GameService) MakeMove(id string, move string) (Game, error) {
 		return Game{}, err
 	}
 
-	gs.EventBus.Publish("game:move", EventGameMove{
+	gs.EventBus.Publish("game:move", events.EventGameMove{
 		GameID:      game.ID,
 		Move:        move,
 		Position:    game.Position,
