@@ -7,19 +7,18 @@ import (
 	"github.com/asaskevich/EventBus"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/notnil/chess"
 )
 
 type MatcherAPI struct {
 	Routes  chi.Router
-	Matcher Matcher
+	Service Matcher
 }
 
 func NewMatcherAPI(bus EventBus.Bus) MatcherAPI {
 	matcher := NewMatcher(bus)
 
 	api := MatcherAPI{
-		Matcher: matcher,
+		Service: matcher,
 	}
 
 	r := chi.NewRouter()
@@ -66,8 +65,7 @@ func (api *MatcherAPI) findMatch(w http.ResponseWriter, r *http.Request) {
 		queue = queue[1:]
 		black := req.Name
 		id := uuid.New().String()
-		newGame := chess.NewGame()
-		GameRepo.Postitions[id] = newGame.Position().String()
+		// TODO: create game ... probably we need service discovery
 
 		resp = MatchResponse{
 			Status: "ready",
