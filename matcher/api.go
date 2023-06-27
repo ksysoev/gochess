@@ -9,7 +9,7 @@ import (
 )
 
 type MatcherAPI struct {
-	Routes  chi.Router
+	Router  chi.Router
 	Service Matcher
 }
 
@@ -23,7 +23,7 @@ func NewMatcherAPI(bus EventBus.Bus) MatcherAPI {
 	r := chi.NewRouter()
 	r.Post("/", api.findMatch)
 
-	api.Routes = r
+	api.Router = r
 
 	return api
 }

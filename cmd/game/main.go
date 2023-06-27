@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/ksysoev/gochess/gamesrv"
+	"github.com/ksysoev/gochess/matcher"
 	"github.com/ksysoev/gochess/notifier"
 )
 
@@ -30,6 +31,9 @@ func main() {
 	bus := EventBus.New()
 	gamesrv := gamesrv.NewApiGameServer(bus)
 	r.Mount("/game", gamesrv.Router)
+
+	matcher := matcher.NewMatcherAPI(bus)
+	r.Mount("/match", matcher.Router)
 
 	srv := notifier.NewApiNotifierServer(bus)
 	r.Mount("/notifier", srv.Router)

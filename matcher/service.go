@@ -25,12 +25,19 @@ func (m *Matcher) findMatch(player string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
+	// If the queue is empty, add the player to the queue
 	if len(m.queue) == 0 {
 		m.queue = append(m.queue, player)
 		return nil
 	}
 
 	white := m.queue[0]
+
+	// If the player is already in the queue, do nothing.
+	if white == player {
+		return nil
+	}
+
 	m.queue = m.queue[1:]
 	black := player
 

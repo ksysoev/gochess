@@ -21,12 +21,14 @@ func NewGameService(gameRepo GameRepo, evbus EventBus.Bus) GameService {
 	}
 
 	evbus.Subscribe("match::found", func(ev events.MatchFoundEvent) {
-		_, err := gs.CreateGame(ev.White, ev.Black)
-
-		if err != nil {
-			log.Printf("Error creating game: %s", err)
-			return
-		}
+		// Limitation of the EventBus library
+		// we should use go routine here to avoid deadlocks.
+		go func() {
+			_, err := gs.CreateGame(ev.White, ev.Black)
+			if err != nil {
+				log.Printf("Error creating game: %s", err)
+			}
+		}()
 	})
 
 	return gs

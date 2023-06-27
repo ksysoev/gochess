@@ -21,7 +21,7 @@ func NewNotifierService(evbus EventBus.Bus) NotifierService {
 }
 
 func (ns NotifierService) Subscribe(events []string) chan Event {
-	eventChan := make(chan Event)
+	eventChan := make(chan Event, 100)
 
 	for _, eventName := range events {
 		ns.EventBus.Subscribe(eventName, func(event any) {
