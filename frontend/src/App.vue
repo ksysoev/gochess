@@ -16,8 +16,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { APIConfig } from '@/api/config';
 import GameView from './components/GameView.vue';
-import { APIConfig } from './api/config.js';
 
 export default defineComponent({
   name: 'App',
@@ -35,12 +35,12 @@ export default defineComponent({
   methods: {
     async findMatch() {
       try {
-        const response = await fetch( APIConfig.baseURL + '/match', {
+        const response = await fetch(`${APIConfig.baseURL}/match/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username: this.username }),
+          body: JSON.stringify({ name: this.username }),
         });
         const data = await response.json();
 
