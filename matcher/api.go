@@ -6,7 +6,6 @@ import (
 
 	"github.com/asaskevich/EventBus"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 )
 
 type MatcherAPI struct {
@@ -29,22 +28,18 @@ func NewMatcherAPI(bus EventBus.Bus) MatcherAPI {
 	return api
 }
 
-var queue []string = make([]string, 0)
-
 type MatchRequest struct {
 	Name string `json:"name"`
 }
 
 type MatchResponse struct {
-	White  string `json:"white,omitempty"`
-	Black  string `json:"black,omitempty"`
 	Status string `json:"status"`
-	GameID string `json:"game_id,omitempty"`
 }
 
 func (api *MatcherAPI) findMatch(w http.ResponseWriter, r *http.Request) {
 	var req MatchRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -54,25 +49,14 @@ func (api *MatcherAPI) findMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var resp MatchResponse
-	if len(queue) == 0 {
-		queue = append(queue, req.Name)
-		resp = MatchResponse{
-			Status: "pending",
-		}
-	} else {
-		white := queue[0]
-		queue = queue[1:]
-		black := req.Name
-		id := uuid.New().String()
-		// TODO: create game ... probably we need service discovery
+	err = api.Service.findMatch(req.Name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		resp = MatchResponse{
-			Status: "ready",
-			White:  white,
-			Black:  black,
-			GameID: id,
-		}
+	resp := MatchResponse{
+		Status: "ok",
 	}
 
 	res, err := json.Marshal(resp)

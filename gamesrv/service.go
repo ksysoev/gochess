@@ -1,6 +1,8 @@
 package gamesrv
 
 import (
+	"log"
+
 	"github.com/asaskevich/EventBus"
 	"github.com/ksysoev/gochess/events"
 )
@@ -13,10 +15,21 @@ type GameService struct {
 
 // NewGameService creates a new GameService.
 func NewGameService(gameRepo GameRepo, evbus EventBus.Bus) GameService {
-	return GameService{
+	gs := GameService{
 		GameRepo: gameRepo,
 		EventBus: evbus,
 	}
+
+	evbus.Subscribe("match::found", func(ev events.MatchFoundEvent) {
+		_, err := gs.CreateGame(ev.White, ev.Black)
+
+		if err != nil {
+			log.Printf("Error creating game: %s", err)
+			return
+		}
+	})
+
+	return gs
 }
 
 // CreateGame creates a new game.
