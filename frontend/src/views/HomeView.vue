@@ -7,7 +7,9 @@
         Click the button below to begin your chess journey!
       </p>
       <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-        <button type="button" class="btn btn-primary btn-lg px-4 gap-3">Start Game</button>
+        <router-link to="/new-game" class="btn btn-primary btn-lg px-4 gap-3">
+          Start Game
+        </router-link>
       </div>
     </div>
   </div>
