@@ -6,7 +6,7 @@
     </p>
     <form class="p-4 p-md-5 border rounded-3 bg-body-tertiary col-lg-4 mx-auto">
       <div class="form-floating mb-3">
-        <input type="email" class="form-control" id="name" placeholder="Jonh Doe" v-model="name"/>
+        <input type="text" class="form-control" id="name" placeholder="Jonh Doe" v-model="name"/>
         <!-- eslint-disable-next-line -->
         <label for="name">Your name</label>
       </div>
