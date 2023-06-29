@@ -15,30 +15,30 @@ import 'vue3-chessboard/style.css';
 const api = APIClient.getInstance();
 
 export default defineComponent({
-  name: 'GameView',
+    name: 'GameView',
 
-  data() {
-    const { playerSide, playerName, gameId } = window.history.state;
+    data() {
+        const { playerSide, playerName, gameId } = window.history.state;
 
-    return {
-      gameId,
-      playerName,
-      playerSide,
-      opponentName: '',
-      boardConfig: {
-        position: 'start',
-        orientation: playerSide,
-      },
-    };
-  },
-  created() {
-    if (!window.history.state.gameId) {
-      this.$router.push({ name: 'home' });
-    }
-  },
-  components: {
-    TheChessboard,
-  },
+        return {
+            gameId,
+            playerName,
+            playerSide,
+            opponentName: '',
+            boardConfig: {
+                position: 'start',
+                orientation: playerSide,
+            },
+        };
+    },
+    created() {
+        if (!window.history.state.gameId) {
+            this.$router.push({ name: 'home' });
+        }
+    },
+    components: {
+        TheChessboard,
+    },
 });
 </script>
 

@@ -5,11 +5,11 @@ interface APISettings {
 }
 
 const APIConfig: APISettings = {
-  token: '',
-  headers: new Headers({
-    Accept: 'application/json',
-  }),
-  baseURL: 'http://localhost:8081',
+    token: '',
+    headers: new Headers({
+        Accept: 'application/json',
+    }),
+    baseURL: 'http://localhost:8081',
 };
 
 export { APISettings, APIConfig };

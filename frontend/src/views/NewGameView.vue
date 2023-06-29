@@ -27,40 +27,47 @@ import { defineComponent } from 'vue';
 import { APIClient, EventGameStarted } from '@/api/client';
 
 export default defineComponent({
-  name: 'CreateGameView',
-  data() {
-    return {
-      name: '',
-    };
-  },
-  methods: {
-    async findMatch() {
-      try {
-        const api = APIClient.getInstance();
-        const onGameStarted = (evt: Event) => {
-          const messageEvent = (evt as MessageEvent);
-          const gameStarted: EventGameStarted = JSON.parse(messageEvent.data);
-
-          if (gameStarted.PlayerBlack === this.name || gameStarted.PlayerWhite === this.name) {
-            api.forget('game:start', onGameStarted);
-            this.$router.push({
-              name: 'game',
-              state: {
-                playerName: this.name,
-                gameId: gameStarted.GameID,
-                playerSide: gameStarted.PlayerBlack === this.name ? 'black' : 'white',
-              },
-            });
-          }
+    name: 'CreateGameView',
+    data() {
+        return {
+            name: '',
         };
-
-        await api.listen('game:start', onGameStarted);
-        await api.findMatch(this.name);
-      } catch (error) {
-        console.error(error);
-      }
     },
-  },
+    methods: {
+        async findMatch() {
+            try {
+                const api = APIClient.getInstance();
+                const onGameStarted = (evt: Event) => {
+                    const messageEvent = (evt as MessageEvent);
+                    const gameStarted: EventGameStarted = JSON.parse(messageEvent.data);
+
+                    let playerSide = '';
+                    if (gameStarted.PlayerBlack === this.name) {
+                        playerSide = 'black';
+                    } else if (gameStarted.PlayerWhite === this.name) {
+                        playerSide = 'white';
+                    }
+
+                    if (playerSide !== '') {
+                        api.forget('game:start', onGameStarted);
+                        this.$router.push({
+                            name: 'game',
+                            state: {
+                                playerName: this.name,
+                                gameId: gameStarted.GameID,
+                                playerSide,
+                            },
+                        });
+                    }
+                };
+
+                await api.listen('game:start', onGameStarted);
+                await api.findMatch(this.name);
+            } catch (error) {
+                console.error(error);
+            }
+        },
+    },
 });
 </script>
 
