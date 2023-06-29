@@ -1,5 +1,24 @@
 import { APIConfig } from '@/api/config';
 
+interface EventGameStarted {
+    GameID: string;
+    PlayerBlack: string;
+    PlayerWhite: string;
+    Position: string;
+}
+
+interface EventGameMove {
+    GameID: string;
+    PlayerBlack: string;
+    PlayerWhite: string;
+    Position: string;
+    Move: string;
+}
+
+interface Game {
+    position: string;
+}
+
 class APIClient {
     private baseURL: string;
 
@@ -30,7 +49,8 @@ class APIClient {
             method: 'GET',
             headers: this.headers,
         });
-        return response.text();
+        const resBody: string = await response.text();
+        return resBody;
     }
 
     private async post(path: string, body: string) : Promise<string> {
@@ -39,13 +59,22 @@ class APIClient {
             headers: this.headers,
             body,
         });
-        return response.text();
+        const resBody: string = await response.text();
+        return resBody;
     }
 
-    public async getGame(id: string): Promise<any> {
+    public async getGame(id: string): Promise<Game> {
         const response = await this.get(`/game/${id}`);
+        const game: Game = JSON.parse(response);
+        return game;
+    }
 
-        return JSON.parse(response);
+    public async makeMove(id: string, move: string): Promise<Game> {
+        const response = await this.post(`/game/${id}/move`, JSON.stringify({
+            move,
+        }));
+        const game: Game = JSON.parse(response);
+        return game;
     }
 
     public async findMatch(playerName: string) {
@@ -86,11 +115,9 @@ class APIClient {
     }
 }
 
-interface EventGameStarted {
-    GameID: string;
-    PlayerBlack: string;
-    PlayerWhite: string;
-    Position: string;
-  }
-
-export { APIClient, EventGameStarted };
+export {
+    APIClient,
+    EventGameStarted,
+    Game,
+    EventGameMove,
+};

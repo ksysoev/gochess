@@ -24,7 +24,8 @@ func (ns NotifierService) Subscribe(events []string) chan Event {
 	eventChan := make(chan Event, 100)
 
 	for _, eventName := range events {
-		ns.EventBus.Subscribe(eventName, func(event any) {
+		name := eventName
+		ns.EventBus.Subscribe(name, func(event any) {
 			data, err := json.Marshal(event)
 
 			if err != nil {
@@ -35,7 +36,7 @@ func (ns NotifierService) Subscribe(events []string) chan Event {
 			eventChan <- Event{
 				ID:   uuid.New().String(),
 				Data: string(data),
-				Name: eventName,
+				Name: name,
 			}
 		})
 	}
