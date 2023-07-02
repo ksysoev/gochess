@@ -1,16 +1,24 @@
 <template>
-    <div>{{opponentName}}</div>
+    <div class="card ">
+        <div class="card-body">
+            {{ opponentName }}
+        </div>
+    </div>
     <div>
       <TheChessboard
         @move="onMove"
         :board-config="boardConfig"
         @board-created="(api) => (boardAPI = api)"/>
     </div>
-    <div>{{playerName}}</div>
+    <div class="card">
+        <div class="card-body">
+            {{ playerName }}
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import {
     TheChessboard, type MoveEvent, type BoardApi,
 } from 'vue3-chessboard';
@@ -27,7 +35,6 @@ export default defineComponent({
             gameId,
             playerName,
             playerSide,
-            opponentName: '',
             boardConfig: {
                 position: 'start',
                 orientation: playerSide,
@@ -53,6 +60,7 @@ export default defineComponent({
 <script setup lang="ts">
 const api = APIClient.getInstance();
 const { playerSide, gameId } = window.history.state;
+const opponentName = ref('');
 
 let boardAPI: BoardApi | undefined;
 let LastServerMove = '';
@@ -60,8 +68,12 @@ let MyLastMove = '';
 
 onMounted(async () => {
     const game = await api.getGame(gameId);
-
     boardAPI?.setPosition(game.position);
+    if (playerSide === 'white') {
+        opponentName.value = game.playerBlack;
+    } else {
+        opponentName.value = game.playerWhite;
+    }
 });
 
 async function onMove(move: MoveEvent) {
@@ -104,13 +116,12 @@ api.listen('game:move', (evt: Event) => {
 });
 </script>
 
-  <style>
-  #app {
+<style>
+#app {
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
     color: #2c3e50;
-    margin-top: 60px;
-  }
-  </style>
+}
+</style>

@@ -15,8 +15,16 @@ interface EventGameMove {
     Move: string;
 }
 
-interface Game {
+interface Move {
     position: string;
+}
+
+interface Game {
+    id: string;
+    playerBlack: string;
+    playerWhite: string;
+    position: string;
+    state: string;
 }
 
 class APIClient {
@@ -69,7 +77,7 @@ class APIClient {
         return game;
     }
 
-    public async makeMove(id: string, move: string): Promise<Game> {
+    public async makeMove(id: string, move: string): Promise<Move> {
         const response = await this.post(`/game/${id}/move`, JSON.stringify({
             move,
         }));

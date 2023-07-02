@@ -43,6 +43,14 @@ type StartGameResponse struct {
 	Position string `json:"position"`
 }
 
+type GameResponse struct {
+	ID          string `json:"id"`
+	Position    string `json:"position"`
+	State       string `json:"state"`
+	PlayerWhite string `json:"playerWhite"`
+	PlayerBlack string `json:"playerBlack"`
+}
+
 // CreateGame creates a new game
 func (app *ApiGameServer) CreateGame(w http.ResponseWriter, r *http.Request) {
 	// Start a new game
@@ -86,8 +94,12 @@ func (app *ApiGameServer) GetGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := MoveResponse{
-		Position: game.Position,
+	resp := GameResponse{
+		Position:    game.Position,
+		State:       game.State,
+		ID:          game.ID,
+		PlayerWhite: game.PlayerWhite,
+		PlayerBlack: game.PlayerBlack,
 	}
 
 	res, err := json.Marshal(resp)
