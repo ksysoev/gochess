@@ -32,6 +32,10 @@ export default defineComponent({
                 position: 'start',
                 orientation: playerSide,
                 coordinates: true,
+                movable: {
+                    free: false,
+                    color: playerSide,
+                },
             },
         };
     },
@@ -48,8 +52,8 @@ export default defineComponent({
 
 <script setup lang="ts">
 const api = APIClient.getInstance();
+const { playerSide, gameId } = window.history.state;
 
-const gameId = window.history.state.gameId || '';
 let boardAPI: BoardApi | undefined;
 let LastServerMove = '';
 let MyLastMove = '';
@@ -61,15 +65,25 @@ onMounted(async () => {
 });
 
 async function onMove(move: MoveEvent) {
+    if (!boardAPI) {
+        return;
+    }
+
     if (LastServerMove === move.san) {
         return;
     }
+
+    if (move.color !== playerSide.toLowerCase().charAt(0)) {
+        boardAPI?.setPosition(move.before);
+        return;
+    }
+
     MyLastMove = move.san;
-    const updatedGame = await api.makeMove(gameId, move.san);
-    if (boardAPI) {
+    try {
+        const updatedGame = await api.makeMove(gameId, move.san);
         boardAPI.setPosition(updatedGame.position);
-    } else {
-        console.error('boardAPI is undefined');
+    } catch (error) {
+        boardAPI?.setPosition(move.before);
     }
 }
 
