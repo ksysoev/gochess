@@ -6,18 +6,25 @@
     </p>
     <div class="p-4 p-md-5 border rounded-3 bg-body-tertiary col-lg-4 mx-auto">
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="name" placeholder="Jonh Doe" v-model="name"/>
+        <input
+            type="text"
+            class="form-control"
+            id="name"
+            minlength="3"
+            maxlength="20"
+            placeholder="Magnus Carlsen"
+            :class="{
+                'is-invalid': invalidName,
+            }"
+            v-model="name"/>
         <!-- eslint-disable-next-line -->
         <label for="name">Your name</label>
       </div>
-      <button class="w-100 btn btn-lg btn-primary" @click="findMatch" id="findgame">
-        Find a game
-      </button>
-      <!--
-        <button class="w-100 btn btn-lg btn-primary">
-        <i class="fa fa-spinner fa-spin"></i> Looking for a game
-      </button>
-      -->
+      <button
+        class="w-100 btn btn-lg btn-primary"
+        @click="findMatch"
+        id="findgame"
+        v-html="buttonText"></button>
     </div>
   </div>
 </template>
@@ -31,11 +38,20 @@ export default defineComponent({
     data() {
         return {
             name: '',
+            buttonText: 'Find a game',
+            invalidName: false,
         };
     },
     methods: {
         async findMatch() {
+            if (this.name.length < 3 || this.name.length > 20) {
+                this.invalidName = true;
+                return;
+            }
+            this.invalidName = false;
+
             try {
+                this.buttonText = '<i class="fa fa-spinner fa-spin"></i> Looking for a game';
                 const api = APIClient.getInstance();
                 const onGameStarted = (evt: Event) => {
                     const messageEvent = (evt as MessageEvent);
@@ -62,7 +78,13 @@ export default defineComponent({
                 };
 
                 await api.listen('game:start', onGameStarted);
-                await api.findMatch(this.name);
+                try {
+                    await api.findMatch(this.name);
+                } catch (error) {
+                    console.error(error);
+                    api.forget('game:start', onGameStarted);
+                    this.buttonText = 'Find a game';
+                }
             } catch (error) {
                 console.error(error);
             }
