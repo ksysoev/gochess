@@ -36,6 +36,7 @@ type MoveRequest struct {
 
 type MoveResponse struct {
 	Position string `json:"position"`
+	State    string `json:"state"`
 }
 
 type StartGameResponse struct {
@@ -139,6 +140,7 @@ func (app *ApiGameServer) MakeMove(w http.ResponseWriter, r *http.Request) {
 
 	resp := MoveResponse{
 		Position: game.Position,
+		State:    game.State,
 	}
 
 	res, err := json.Marshal(resp)

@@ -1,18 +1,18 @@
 <template>
-    <div class="card ">
-        <div class="card-body">
-            {{ opponentName }}
+    <div class="card">
+        <div class="card-body text-start">
+            <strong>{{ opponentName }}</strong>
         </div>
     </div>
     <div>
-      <TheChessboard
+    <TheChessboard
         @move="onMove"
         :board-config="boardConfig"
         @board-created="(api) => (boardAPI = api)"/>
     </div>
     <div class="card">
-        <div class="card-body">
-            {{ playerName }}
+        <div class="card-body text-left text-start font-weight-bolder">
+            <strong>{{ playerName }}</strong>
         </div>
     </div>
 </template>
