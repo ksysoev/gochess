@@ -7,6 +7,7 @@
     <div>
     <TheChessboard
         @move="onMove"
+        @checkmate="handleCheckmate"
         :board-config="boardConfig"
         @board-created="(api) => (boardAPI = api)"/>
     </div>
@@ -14,6 +15,32 @@
         <div class="card-body text-left text-start font-weight-bolder">
             <strong>{{ playerName }}</strong>
         </div>
+    </div>
+
+    <!-- Modal -->
+    <div
+        class="modal fade"
+        id="exampleModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Game Result</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            {{ opponentName }}
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
     </div>
 </template>
 
@@ -61,6 +88,7 @@ export default defineComponent({
 const api = APIClient.getInstance();
 const { playerSide, gameId } = window.history.state;
 const opponentName = ref('');
+const gameResult = ref('');
 
 let boardAPI: BoardApi | undefined;
 let LastServerMove = '';
@@ -74,10 +102,19 @@ onMounted(async () => {
     } else {
         opponentName.value = game.playerWhite;
     }
+
+    handleState(game.State);
 });
 
-async function onMove(move: MoveEvent) {
+async function handleCheckmate(isMated) {
     if (!boardAPI) {
+        return;
+    }
+    onMove(boardAPI.getLastMove());
+}
+
+async function onMove(move: MoveEvent) {
+    if (!move || !boardAPI) {
         return;
     }
 
@@ -93,7 +130,9 @@ async function onMove(move: MoveEvent) {
     MyLastMove = move.san;
     try {
         const updatedGame = await api.makeMove(gameId, move.san);
-        boardAPI.setPosition(updatedGame.position);
+        if (updatedGame.position !== move.after) {
+            boardAPI?.setPosition(updatedGame.position);
+        }
     } catch (error) {
         boardAPI?.setPosition(move.before);
     }
@@ -102,10 +141,12 @@ async function onMove(move: MoveEvent) {
 api.listen('game:move', (evt: Event) => {
     const messageEvent = (evt as MessageEvent);
     const moveEvent: EventGameMove = JSON.parse(messageEvent.data);
-    if (MyLastMove === moveEvent.Move) {
+
+    if (moveEvent.GameID !== gameId) {
         return;
     }
-    if (moveEvent.GameID === gameId) {
+
+    if (MyLastMove !== moveEvent.Move) {
         if (boardAPI) {
             LastServerMove = moveEvent.Move;
             boardAPI.move(moveEvent.Move);
@@ -113,7 +154,31 @@ api.listen('game:move', (evt: Event) => {
             console.error('boardAPI is undefined');
         }
     }
+
+    handleState(moveEvent.State);
 });
+
+function handleState(state) {
+    switch (state) {
+    case 'white_won':
+        gameResult.value = 'White won';
+        break;
+    case 'black_won':
+        gameResult.value = 'Black won';
+        break;
+
+    case 'draw':
+        gameResult.value = 'Draw';
+        break;
+    default:
+        break;
+    }
+
+    // TODO Replace it with a modal
+    if (gameResult.value) {
+        alert(gameResult.value);
+    }
+}
 </script>
 
 <style>

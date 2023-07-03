@@ -7,6 +7,7 @@ type EventGameMove struct {
 	Position    string
 	PlayerWhite string
 	PlayerBlack string
+	State       string
 }
 
 // EventGameStart is an event that is published when a game is started.

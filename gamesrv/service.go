@@ -86,6 +86,7 @@ func (gs GameService) MakeMove(id string, move string) (Game, error) {
 		Position:    game.Position,
 		PlayerWhite: game.PlayerWhite,
 		PlayerBlack: game.PlayerBlack,
+		State:       game.State,
 	})
 	return game, nil
 }
