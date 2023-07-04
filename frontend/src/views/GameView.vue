@@ -7,7 +7,11 @@
     <div>
     <TheChessboard
         @move="onMove"
-        @checkmate="handleCheckmate"
+        @checkmate="handleSpecialMove"
+        @stalemate="handleSpecialMove"
+        @draw="handleSpecialMove"
+        @check="handleSpecialMove"
+        @promotion="handleSpecialMove"
         :board-config="boardConfig"
         @board-created="(api) => (boardAPI = api)"/>
     </div>
@@ -103,10 +107,10 @@ onMounted(async () => {
         opponentName.value = game.playerWhite;
     }
 
-    handleState(game.State);
+    handleState(game.state);
 });
 
-async function handleCheckmate(isMated) {
+async function handleSpecialMove() {
     if (!boardAPI) {
         return;
     }
@@ -166,7 +170,6 @@ function handleState(state) {
     case 'black_won':
         gameResult.value = 'Black won';
         break;
-
     case 'draw':
         gameResult.value = 'Draw';
         break;
